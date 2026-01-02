@@ -145,7 +145,7 @@ function sortSheet(sheet, sheetName) {
 after pasting click deploy > newdeployment > set deploy type to "Web App" > change access to everyone > hit deploy
 *if getting authorization, authorize it, click advance setting and trust unsafe project*
 
-copy the URL you get and paste it in scanner_page.dart around line 13 in the variable "final String scriptUrl"
+copy the URL you get and paste it in "scanner_page.dart" around line 13 in the variable "final String scriptUrl"
 
 
 ****important****** 
@@ -154,7 +154,7 @@ are same, everything needs to be exact. and name your sheet  are nameed "Pit-Sco
 ****important****** 
 
 
-# to test the app on android phone, with a cord. turn on developer mode and enable usb debugging
+# to test the app on android phone, with a cord. turn on "developer mode" and enable "usb debugging"
 see devices by running "flutter devices" command on terminal
 use "flutter run" on terminal to run
 
