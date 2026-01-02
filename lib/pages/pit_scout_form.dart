@@ -19,7 +19,7 @@ class _PitScoutFormState extends State<PitScoutForm> {
     {
       'label': 'Autonomous strat',
       'type': 'checkbox',
-      'options': ['None', 'Drive forward', 'Score 1 coral', 'Score More than 1 Coral', 'Remove Algae from reef', 'Score Algae', 'Other']
+      'options': ['yes', 'Drive forward', 'Score 1 coral', 'Score More than 1 Coral', 'Remove Algae from reef', 'Score Algae', 'Other']
     },
     {
       'label': 'Drivetrain',
@@ -184,34 +184,55 @@ class _PitScoutFormState extends State<PitScoutForm> {
         );
 
       case 'select':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(field['label'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _formData[field['label']], // <- THIS is the fix
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-              items: (field['options'] as List<String>)
-                  .map((option) => DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option, style: TextStyle(fontSize: 18)),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _formData[field['label']] = value ?? 'No Data';
-                });
-              },
-              onSaved: (value) {
-                _formData[field['label']] = value ?? 'No Data';
-              },
+      final List<String> options = List<String>.from(field['options'] ?? []);
+      final dynamic currentValue = _formData[field['label']];
+
+      // ✅ Guard: only allow dropdown value if it exists in the options list
+      final String? safeValue =
+          (currentValue is String && options.contains(currentValue))
+              ? currentValue
+              : null;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(field['label'],
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: safeValue, // ✅ safe: null OR in options
+            hint: Text('Select one', style: TextStyle(fontSize: 18)),
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-          ],
-        );
+            items: options
+                .map((option) => DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(option, style: TextStyle(fontSize: 18)),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                // ✅ store null if not selected; do NOT store 'No Data' here
+                _formData[field['label']] = value;
+              });
+            },
+            onSaved: (value) {
+              // ✅ convert to 'No Data' ONLY at submit time
+              _formData[field['label']] = value ?? 'No Data';
+            },
+            validator: (value) {
+              // Optional: enforce required dropdowns if you ever add required:true
+              if (field['required'] == true && (value == null || value.isEmpty)) {
+                return 'This field is required';
+              }
+              return null;
+            },
+          ),
+        ],
+      );
 
 
       case 'checkbox':
@@ -251,12 +272,28 @@ class _PitScoutFormState extends State<PitScoutForm> {
     if (_formKey.currentState?.validate() ?? false) {
       _formKey.currentState?.save();
 
-      _formData['Team Number'] = _controllers['Team Number']?.text ?? 'No Data';
+      // Ensure Team Number always pulled from controller
+      _formData['Team Number'] = _controllers['Team Number']?.text.isNotEmpty == true
+          ? _controllers['Team Number']!.text
+          : 'No Data';
 
       // Mark any unchecked checkboxes as 'No Data'
       pitScoutFields.forEach((field) {
-        if (field['type'] == 'checkbox' && (_formData[field['label']] == null || _formData[field['label']].isEmpty)) {
-          _formData[field['label']] = 'No Data';
+        if (field['type'] == 'checkbox') {
+          final value = _formData[field['label']];
+          if (value == null || (value is List && value.isEmpty)) {
+            _formData[field['label']] = 'No Data';
+          }
+        }
+      });
+
+      // Mark any unselected dropdowns as 'No Data' (in case some stayed null)
+      pitScoutFields.forEach((field) {
+        if (field['type'] == 'select') {
+          final value = _formData[field['label']];
+          if (value == null || (value is String && value.isEmpty)) {
+            _formData[field['label']] = 'No Data';
+          }
         }
       });
 
@@ -269,7 +306,6 @@ class _PitScoutFormState extends State<PitScoutForm> {
       };
 
       final jsonString = jsonEncode(barcodePayload);
-
       print(jsonString);
 
       setState(() {

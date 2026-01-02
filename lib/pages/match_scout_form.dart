@@ -215,22 +215,35 @@ class _MatchScoutFormState extends State<MatchScoutForm> {
   }
 
   Widget _buildDropdown(Map<String, dynamic> field) {
-    String? currentValue = _formData[field['label']] as String?;
+    final List<String> options = List<String>.from(field['options'] ?? []);
+    final dynamic currentValue = _formData[field['label']];
+
+    // ✅ Only allow values that exist in the options list
+    final String? safeValue =
+        (currentValue is String && options.contains(currentValue))
+            ? currentValue
+            : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(field['label'],
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(
+          field['label'],
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: currentValue,  // ← sets the current value
+          value: safeValue, // ✅ safe: null OR in options
+          hint: const Text('Select one', style: TextStyle(fontSize: 18)),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
-          items: (field['options'] as List<String>)
-              .map((o) => DropdownMenuItem(value: o, child: Text(o, style: const TextStyle(fontSize: 18))))
+          items: options
+              .map((o) => DropdownMenuItem<String>(
+                    value: o,
+                    child: Text(o, style: const TextStyle(fontSize: 18)),
+                  ))
               .toList(),
           validator: (value) {
             if (field['required'] == true && (value == null || value.isEmpty)) {
@@ -240,16 +253,19 @@ class _MatchScoutFormState extends State<MatchScoutForm> {
           },
           onChanged: (value) {
             setState(() {
+              // ✅ store null while editing; don't store 'No Data'
               _formData[field['label']] = value;
             });
           },
           onSaved: (value) {
+            // ✅ convert to 'No Data' ONLY when submitting
             _formData[field['label']] = value ?? 'No Data';
           },
         ),
       ],
     );
   }
+
 
 
   Widget _buildCheckboxGroup(Map<String, dynamic> field) {

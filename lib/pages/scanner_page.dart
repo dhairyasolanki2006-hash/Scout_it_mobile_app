@@ -10,7 +10,7 @@ class ScannerPage extends StatefulWidget {
 }
 
 class _ScannerPageState extends State<ScannerPage> {
-  final String scriptUrl = 'https://script.google.com/macros/s/AKfycbz6yIsPWSA40YpcOdieVVqfV60zIXp8rj0zSb1LUej2rzUAiPrPvu1MC7lqmMJyB7oU/exec';
+  final String scriptUrl = 'https://script.google.com/macros/s/AKfycbw80voD7ciRNpSB6OlWzEKCGXWnc-dq-sIKQew4_qLR9MRU_O7xY1ZjxXXuLtTJ7x7a/exec';
   bool _isProcessing = false;
   String? _lastScanned;
   final Dio _dio = Dio();

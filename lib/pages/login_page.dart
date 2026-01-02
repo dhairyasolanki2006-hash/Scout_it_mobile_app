@@ -14,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   final Map<String, String> hardcodedUsers = {
+    'master': 'master',
     'scout1': '1-2935',
     'scout2': '2-2935',
     'scout3': '3-2935',
